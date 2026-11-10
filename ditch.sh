@@ -24,6 +24,9 @@ Options must preceed RUN_ARGUMENTS (and -- options/values must be separated by a
 RUN_ARGUMENTS  Run these commands in the container.  Specify the agent
                you want by command line name.  If not given, runs bash
                inside the container so you can see how it's set up.
+--ro           Read-only $PWD and fake $HOME
+--ro-pwd       Read-only $PWD
+--ro-home      Read only fake $HOME (may not work for all agents)
 --img IMG.sif  Override apptainer image file
 --bind BIND    Extra binds (may be given multiple times)
                Same format as apptainer.  Must be absolute path.
@@ -37,8 +40,12 @@ EOF
         --img)        IMG="$2";
                       if [ ! -e "$IMG" ] ; then echo "not present: $IMG" ; exit 1 ; fi ;
                                                            shift 2 ;;
-        --bind)       BINDS+=(--bind="$2") ;         shift 2 ;;
-        --bind-ro)    BINDS+=(--bind="$2":"$2":ro) ; shift 2 ;;
+        --ro)         DITCH_RO_HOME=1 ; DITCH_RO_PWD=1 ;   shift 1 ;;
+        --ro-home)    DITCH_RO_HOME=1 ;                    shift 1 ;;
+        --ro-pwd)     DITCH_RO_PWD=1 ;                     shift 1 ;;
+        --ro-git)     DITCH_RO_GIT=1 ;                     shift 1 ;;
+        --bind)       BINDS+=(--bind="$2") ;               shift 2 ;;
+        --bind-ro)    BINDS+=(--bind="$2":"$2":ro) ;       shift 2 ;;
         *)            RUN_ARGS+=("$@") ;                   break   ;;
     esac
 done
@@ -61,13 +68,30 @@ fi
 
 MOAT_HOME=$HOME/.moat/home/
 
-BINDS+=("--bind=$MOAT_HOME:$HOME/")
+# Options for read-only $PWD and $HOME
+if [ -n "$DITCH_RO_PWD" ] ; then
+    BINDS+=("--bind=$PWD:$PWD:ro")
+else
+    BINDS+=("--bind=$PWD:$PWD")
+fi
+if [ -n "$DITCH_RO_HOME" ] ; then
+    BINDS+=("--bind=$MOAT_HOME:$HOME/:ro")
+else
+    BINDS+=("--bind=$MOAT_HOME:$HOME/")
+fi
+if [ -n "$DITCH_RO_GIT" ] ; then
+    BINDS+=("--bind=$PWD/.git/:$PWD/.git/:ro")
+fi
+
+# Other binds
 BINDS+=("--writable-tmpfs")
+BINDS+=("--bind=/tmp/.X11-unix/")
 
 apptainer exec \
-          --contain --env LANG=C --env LC_ALL=C \
+          --containall --env LANG=C --env LC_ALL=C \
+          --env XDG_RUNTIME_DIR="$XDG_RUNTIME_DIR" \
+          --env DISPLAY="$DISPLAY" \
           --cwd "$PWD" \
-          --bind "$PWD:$PWD" \
           "${BINDS[@]}" \
           "$IMG" \
           bash -c "source /opt/nvm/nvm.sh ; mkdir -p \"\$XDG_RUNTIME_DIR\" ; chmod 700 \"\$XDG_RUNTIME_DIR\" ; \${@:-bash}" [in-container] "${RUN_ARGS[@]}"
