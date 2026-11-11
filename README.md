@@ -45,7 +45,7 @@ To-do:
 
 * Option for per-project fake home
 * ~~Investigate --containall~~
-* --no-home or --home-ro options.
+* ~~--no-home or --home-ro options.~~
 * ~~--ro, --ro-home, and --ro-pwd options.~~ Implemented but can break
   certain agents.  I will investigate more if someone asks.
 
