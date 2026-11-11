@@ -3,8 +3,8 @@
 declare -a RUN_ARGS
 declare -a BINDS
 
-IMG_SOURCE=docker://ghcr.io/aaltorse/moat:v0.3.2
-IMG="$HOME"/sys/moat-0.3.2.sif
+IMG_SOURCE=docker://ghcr.io/aaltorse/moat:v0.4.0
+IMG="$HOME"/sys/moat-0.4.0.sif
 
 while [[ $# -gt 0 ]]; do
     case $1 in
