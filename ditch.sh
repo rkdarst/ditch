@@ -68,6 +68,8 @@ fi
 
 
 MOAT_HOME=$HOME/.moat/home/
+# Must make mountpoint for $PWD within the fake home
+mkdir -p "$MOAT_HOME"/"$(realpath "$PWD" --relative-to "$HOME")"
 
 # Options for read-only $PWD and $HOME
 if [ -n "$DITCH_RO_PWD" ] ; then
