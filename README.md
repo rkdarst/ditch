@@ -3,6 +3,8 @@
 A simpler way to isolate AI agent tools.  It's designed for simplicity
 and no configuration being needed.
 
+This (code + documentation) is fully human-written with minor machine
+review advice.
 
 ## Usage
 
