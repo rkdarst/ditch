@@ -13,7 +13,7 @@ fi
 
 while [[ $# -gt 0 ]]; do
     case $1 in
-        -h|--help)
+        -h|--help|--he*)
             cat <<EOF
 ditch.sh [options] [RUN_ARGUMENTS ...]
 
@@ -117,7 +117,7 @@ fi
 apptainer exec \
           --containall --writable-tmpfs \
 	  --env LANG=C --env LC_ALL=C \
-          --env XDG_RUNTIME_DIR="${XDG_RUNTIME_DIR:-/tmp/xdgr-$(id -u)-$(mktemp -u XXXXXXXXXX)}" \
+          --env XDG_RUNTIME_DIR="${XDG_RUNTIME_DIR:-/run/user/$(id -u)}" \
           --env DISPLAY="$DISPLAY" \
           --cwd "$PWD" \
           "${BINDS[@]/#/--bind=}" \

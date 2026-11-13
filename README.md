@@ -6,6 +6,8 @@ and no configuration being needed.
 This (code + documentation) is fully human-written with minor machine
 review advice.
 
+
+
 ## Usage
 
 It has the following layers:
@@ -24,6 +26,9 @@ It has the following layers:
    * `ditch.sh` - run bash (lets you understand the container runtime)
    * `ditch.sh omp` - run omp
    * `ditch.sh codium --wait .` - run VSCodium.
+   * Make different things read-only: `--ro-pwd`, `--ro-home`,
+     ``--`ro-git``, etc.  (see --help)
+   * See the `--help` for more options.
 
 
 
@@ -39,7 +44,7 @@ These can be fixed if someone requests
   which may or may not be what you want.
 * The `moat` version and download locations are hard-coded and should
   be made flexible.
-
+* Image download location hardcoded as $HOME, to be updated.
 
 To-do:
 
@@ -48,6 +53,8 @@ To-do:
 * ~~--no-home or --home-ro options.~~
 * ~~--ro, --ro-home, and --ro-pwd options.~~ Implemented but can break
   certain agents.  I will investigate more if someone asks.
+
+
 
 ## See also
 
