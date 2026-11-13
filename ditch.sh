@@ -4,7 +4,12 @@ declare -a RUN_ARGS
 declare -a BINDS
 
 IMG_SOURCE=docker://ghcr.io/aaltorse/moat:v0.4.0
-IMG="$HOME"/sys/moat-0.4.0.sif
+# TODO: put images in a better place
+if [ -d ~/sys/ ] ; then
+    IMG="$HOME"/sys/moat-0.4.0.sif
+else
+    IMG="$HOME"/moat-0.4.0.sif
+fi
 
 while [[ $# -gt 0 ]]; do
     case $1 in
