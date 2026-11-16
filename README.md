@@ -52,7 +52,8 @@ To-do:
 * ~~Investigate --containall~~
 * ~~--no-home or --home-ro options.~~
 * ~~--ro, --ro-home, and --ro-pwd options.~~ Implemented but can break
-  certain agents.  I will investigate more if someone asks.
+  certain agents.  I will investigate more if someone asks.  There are
+  --rw-* options to make various agents work.
 * Test Wayland.  Preliminary support but it doesn't even have an
   initial test.
 

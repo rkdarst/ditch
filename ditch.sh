@@ -2,6 +2,7 @@
 
 declare -a RUN_ARGS
 declare -a BINDS
+declare -a ENV_VARS
 
 IMG_SOURCE=docker://ghcr.io/aaltorse/moat:v0.4.0
 # TODO: put images in a better place
@@ -120,8 +121,15 @@ if [ \( -n "${DITCH_GRAPHICAL}" \
      -a -n "$DISPLAY" \
      -a -e /tmp/.X11-unix/ \
    ] ; then
-    BINDS+=("/tmp/.X11-unix/X${DISPLAY##*:}:/tmp/.X11-unix/X${DISPLAY##*:}")
-    # TODO: test -e $XAUTHORITY && bind mount it ro + env export.
+    XNUM=${DISPLAY##*:} ; XNUM=${XNUM%%.*}
+    if [ -e "/tmp/.X11-unix/X${XNUM}" ] ; then
+	BINDS+=("/tmp/.X11-unix/X${XNUM}:/tmp/.X11-unix/X${XNUM}")
+    fi
+    if [ -e "${XAUTHORITY}" ] ; then
+	BINDS+=("${XAUTHORITY}:${XAUTHORITY}:ro")
+	ENV_VARS+=("--env" "XAUTHORITY=${XAUTHORITY}")
+    fi
+    ENV_VARS+=("--env" "DISPLAY=${DISPLAY}")
 fi
 # Wayland
 if [ \( -n "${DITCH_GRAPHICAL}" \
@@ -132,14 +140,14 @@ if [ \( -n "${DITCH_GRAPHICAL}" \
     BINDS+=("${XDG_RUNTIME_DIR}/${WAYLAND_DISPLAY}:${XDG_RUNTIME_DIR}/${WAYLAND_DISPLAY}")
     # TODO: is /dev/dri needed for speed?  Or --nv / --rocm?
     # TODO: $WAYLAND_DISPLAY as an absolute path.
+    ENV_VARS+=("--env" "WAYLAND_DISPLAY=$WAYLAND_DISPLAY")
 fi
 
 apptainer exec \
           --containall --writable-tmpfs \
           --env LANG=C --env LC_ALL=C \
           --env XDG_RUNTIME_DIR="${XDG_RUNTIME_DIR}" \
-          --env DISPLAY="$DISPLAY" \
-          --env WAYLAND_DISPLAY="$WAYLAND_DISPLAY" \
+	  "${ENV_VARS[@]}" \
           --cwd "$PWD" \
           "${BINDS[@]/#/--bind=}" \
           "$IMG" \
