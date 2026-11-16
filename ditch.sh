@@ -41,6 +41,8 @@ RUN_ARGUMENTS  Run these commands in the container.  Specify the agent
 --bind-ro BIND Like above but expanded to BIND:BIND:ro
 --x11          Mount in X11 socket (automatic if first argument is code
                or codium)
+--wayland      Mount in wayland socket (same detection as above, but
+               untested, so probably doesn't work yet.)
 --verbose      Run with set -x
 
 EOF
@@ -59,7 +61,8 @@ EOF
         --rw-codium)   DITCH_RW_CODIUM=1 ;                 shift 1 ;;
         --bind)        BINDS+=("${2}") ;                   shift 2 ;;
         --bind-ro)     BINDS+=("${2}:${2}:ro") ;           shift 2 ;;
-	--x11)         DITCH_X11=1 ;                       shift 1 ;;
+        --x11)         DITCH_X11=1 ;                       shift 1 ;;
+        --wayland)     DITCH_WAYLAND=1 ;                   shift 1 ;;
         *)             RUN_ARGS+=("$@") ;                  break   ;;
     esac
 done
@@ -103,22 +106,40 @@ if [ -n "$DITCH_RW_CODIUM" ]; then
 fi
 
 
-
+# Normalize XDG_RUNTIME_DIR
+XDG_RUNTIME_DIR="${XDG_RUNTIME_DIR:-/run/user/$(id -u)}"
 # Other binds
-if [ \( "${RUN_ARGS[0]}" = "code" \
+if [ "${RUN_ARGS[0]}" = "code" \
      -o "${RUN_ARGS[0]}" = "codium" \
-     -o -n "${DITCH_X11}" \) \
-     -a -e /tmp/.X11-unix/ \
-     -a -n "$DISPLAY" \
    ] ; then
-   BINDS+=("/tmp/.X11-unix/:/tmp/.X11-unix/")
+    DITCH_GRAPHICAL=1
+fi
+# X11
+if [ \( -n "${DITCH_GRAPHICAL}" \
+     -o -n "${DITCH_X11}" \) \
+     -a -n "$DISPLAY" \
+     -a -e /tmp/.X11-unix/ \
+   ] ; then
+    BINDS+=("/tmp/.X11-unix/X${DISPLAY##*:}:/tmp/.X11-unix/X${DISPLAY##*:}")
+    # TODO: test -e $XAUTHORITY && bind mount it ro + env export.
+fi
+# Wayland
+if [ \( -n "${DITCH_GRAPHICAL}" \
+     -o -n "${DITCH_WAYLAND}" \) \
+     -a -n "${WAYLAND_DISPLAY}" \
+     -a -e "${XDG_RUNTIME_DIR}/${WAYLAND_DISPLAY}" \
+   ] ; then
+    BINDS+=("${XDG_RUNTIME_DIR}/${WAYLAND_DISPLAY}:${XDG_RUNTIME_DIR}/${WAYLAND_DISPLAY}")
+    # TODO: is /dev/dri needed for speed?  Or --nv / --rocm?
+    # TODO: $WAYLAND_DISPLAY as an absolute path.
 fi
 
 apptainer exec \
           --containall --writable-tmpfs \
-	  --env LANG=C --env LC_ALL=C \
-          --env XDG_RUNTIME_DIR="${XDG_RUNTIME_DIR:-/run/user/$(id -u)}" \
+          --env LANG=C --env LC_ALL=C \
+          --env XDG_RUNTIME_DIR="${XDG_RUNTIME_DIR}" \
           --env DISPLAY="$DISPLAY" \
+          --env WAYLAND_DISPLAY="$WAYLAND_DISPLAY" \
           --cwd "$PWD" \
           "${BINDS[@]/#/--bind=}" \
           "$IMG" \

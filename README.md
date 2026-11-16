@@ -53,6 +53,8 @@ To-do:
 * ~~--no-home or --home-ro options.~~
 * ~~--ro, --ro-home, and --ro-pwd options.~~ Implemented but can break
   certain agents.  I will investigate more if someone asks.
+* Test Wayland.  Preliminary support but it doesn't even have an
+  initial test.
 
 
 
