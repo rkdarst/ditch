@@ -36,6 +36,7 @@ It has the following layers:
 
 These can be fixed if someone requests
 
+* Upstream `moat` image versions are not automatically updated.
 * A fake `$HOME` (`~/.moat/home/`) is shared across all projects,
   which can make cross-project leakage.  This is designed so that you
   can configure agents once, but introduces at least some risk.
@@ -56,6 +57,8 @@ To-do:
   --rw-* options to make various agents work.
 * Test Wayland.  Preliminary support but it doesn't even have an
   initial test.
+* Support non-Linux OSs.  (there is a Docker version planned that can
+  be integrated in the main script, once there is someone to test).
 
 
 
